@@ -3,12 +3,13 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: process.env.REACT_APP_FIRBASE_KEY,
-  authDomain: process.env.REACT_APP_AUTHDOMAIN,
-  projectId: process.env.REACT_APP_PROJECT_ID,
-  storageBucket: process.env.REACT_APP_STORAGEBUCKET,
-  messagingSenderId: process.env.REACT_APP_MESSAGESENDER,
-  appId: process.env.REACT_APP_APPID,
+  apiKey: "AIzaSyA-wQRiq6DAnukrgyisr7UlBWjPSbjJCOo",
+  authDomain: "crime-report-5c09f.firebaseapp.com",
+  projectId: "crime-report-5c09f",
+  storageBucket: "crime-report-5c09f.appspot.com",
+  messagingSenderId: "482196548122",
+  appId: "1:482196548122:web:ca8e8031d8f1a1795a7fa3",
+  measurementId: "G-LJFH54SRHK",
 };
 
 const app = initializeApp(firebaseConfig);

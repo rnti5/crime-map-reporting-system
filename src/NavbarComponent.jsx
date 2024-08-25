@@ -1,26 +1,24 @@
 import React, { useEffect, useState } from "react";
-
 import { authentication } from "./FirebaseConfig";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { Link, useNavigate } from "react-router-dom";
-
 import { Button } from "react-bootstrap";
-import { toast } from "react-toastify";
 
 const NavbarComponent = ({ getUser }) => {
   const [loggedIn, setLoggedIn] = useState(false);
-  //Checking the current user logged in my databse
-  const func = () => {
-    onAuthStateChanged(authentication, (currentUser) => {
-      if (currentUser) {
-        setUserEmail(currentUser?.email);
-        setUserName(currentUser?.displayName);
-        setLoggedIn(true);
-      }
-    });
-  };
+  const [userEmail, setUserEmail] = useState("");
+  const [userName, setUserName] = useState("");
 
   useEffect(() => {
+    const func = () => {
+      onAuthStateChanged(authentication, (currentUser) => {
+        if (currentUser) {
+          setUserEmail(currentUser?.email);
+          setUserName(currentUser?.displayName);
+          setLoggedIn(true);
+        }
+      });
+    };
     func();
   }, []);
 
@@ -36,9 +34,6 @@ const NavbarComponent = ({ getUser }) => {
     }
   };
 
-  const [userEmail, setUserEmail] = useState("");
-  const [userName, setUserName] = useState("");
-
   return (
     <div className="ms-auto">
       <button
@@ -53,7 +48,7 @@ const NavbarComponent = ({ getUser }) => {
 
       {loggedIn ? (
         <div
-          className="offcanvas offcanvas-end"
+          className="offcanvas offcanvas-end custom-offcanvas"
           id="offcanvasRight"
           aria-labelledby="offcanvasRightLabel"
         >
@@ -111,18 +106,27 @@ const NavbarComponent = ({ getUser }) => {
             <p className="fs-5">Actions</p>
             <div className="my-1 ">
               <i className="fa-solid fa-person-circle-exclamation"></i>
-              <button
-                onClick={() => toast.info("Only Admins can access Reports")}
-                className="text-center text-decoration-none text-secondary mx-4 border-0 bg-transparent"
+              <Link
+                to="/admin/reports" // Navigate to the reports dashboard
+                className="text-center text-decoration-none text-secondary mx-4"
               >
                 Reports
-              </button>
+              </Link>
+            </div>
+            <div className="my-1 ">
+              <i className="fa-solid fa-phone"></i>
+              <Link
+                to="/emergency-contacts" // Navigate to the emergency contacts list
+                className="text-center text-decoration-none text-secondary mx-4"
+              >
+                Emergency Contacts
+              </Link>
             </div>
           </div>
         </div>
       ) : (
         <div
-          className="offcanvas offcanvas-end p-5"
+          className="offcanvas offcanvas-end p-5 custom-offcanvas"
           id="offcanvasRight"
           aria-labelledby="offcanvasRightLabel"
         >

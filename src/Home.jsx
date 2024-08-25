@@ -1,27 +1,20 @@
 import React, { useEffect, useState } from "react";
-
+import { MapContainer, TileLayer, Popup, Marker, useMap } from "react-leaflet";
 import { authentication } from "./FirebaseConfig";
 import { onAuthStateChanged } from "firebase/auth";
-
 import { collection, addDoc } from "firebase/firestore";
-
 import { db } from "./FirebaseConfig";
-
-//Leaflet Imports
-import { MapContainer, TileLayer, Popup, Marker } from "react-leaflet";
-
 import { toast } from "react-toastify";
-
 import Loading from "./Components/Loading";
-
 import AddMarker from "./Components/AddMarker";
 import NavbarComponent from "./NavbarComponent";
-
 import { Form, Button } from "react-bootstrap";
+import HeatmapLayer from "./Components/HeatMapLayer"; // Import HeatmapLayer component
 
 const Home = () => {
   const [center, setCenter] = useState();
   const [addmarker, setAddmarker] = useState(false);
+  const [showHeatmap, setShowHeatmap] = useState(true); // State to toggle heatmap visibility
 
   const [name, setName] = useState("");
   const [incident, setIncident] = useState("");
@@ -39,22 +32,20 @@ const Home = () => {
     day: "numeric",
   });
 
-  //getting Report time
   const currentTime = new Date();
   const time = currentTime.toLocaleTimeString("en-US");
 
   const [markers, setMarkers] = useState();
+
   const fetchCityName = async (lat, lon) => {
     const response = await fetch(
       `https://api.openweathermap.org/geo/1.0/reverse?lat=${lat}&lon=${lon}&appid=f46a8be772d9e8a8f927576bcf650eb5`
     );
     const data = await response.json();
-    console.log(data);
     setCityName(data[0].name);
     setSate(data[0].state);
   };
 
-  //User Location is fetched and set as the maps center
   const getUser = () => {
     onAuthStateChanged(authentication, (currentUser) => {
       setName(currentUser.displayName);
@@ -91,12 +82,25 @@ const Home = () => {
         phone: phone,
       }),
       {
-        pending: "Submitting Rpeort",
+        pending: "Submitting Report",
         success: "Report successfully submitted",
-        error: "An issue occured, Try again!",
+        error: "An issue occurred, Try again!",
       }
     );
   };
+
+  // Component to handle the heatmap layer with the correct useMap hook
+  const MapWithHeatmap = () => {
+    const map = useMap(); // useMap hook is called unconditionally here
+    return (
+      <HeatmapLayer map={map} showHeatmap={showHeatmap} showTooltip={true} />
+    ); // Passing props correctly
+  };
+
+  const toggleHeatmap = () => {
+    setShowHeatmap(!showHeatmap); // Correctly toggling heatmap visibility
+  };
+
   return (
     <div>
       {center ? (
@@ -104,121 +108,122 @@ const Home = () => {
           <div className="sidebar p-4 d-flex flex-column gap-3">
             <NavbarComponent />
 
+            <Button onClick={toggleHeatmap}>
+              {showHeatmap ? "Hide Heatmap" : "Show Heatmap"}
+            </Button>
+
             {addmarker ? (
-              <>
-                <Form
-                  className="h-100 bg-dark p-3 rounded-4"
-                  onSubmit={sentData}
-                >
-                  <p className="text-light fw-bolder text-center gy-0 my-0 py-0">
-                    {" "}
-                    {cityName.toUpperCase()}
+              <Form className="h-100 bg-dark p-3 rounded-4" onSubmit={sentData}>
+                <p className="text-light fw-bolder text-center gy-0 my-0 py-0">
+                  {cityName.toUpperCase()}
+                </p>
+                <p className="text-light mb-4 text-center">{state}</p>
+
+                <div className="d-flex gap-2 text-light">
+                  <p>
+                    Lat :{" "}
+                    <span className="text-dark bg-light px-2 py-1 fw-bold rounded-2">
+                      {incidentLocation.lat.toFixed(3)}
+                    </span>
                   </p>
-                  <p className="text-light mb-4 text-center">{state}</p>
-
-                  <div className="d-flex gap-2 text-light">
-                    <p>
-                      Lat :{" "}
-                      <span className="text-dark bg-light px-2 py-1 fw-bold rounded-2">
-                        {incidentLocation.lat.toFixed(3)}
-                      </span>
-                    </p>
-                    <p>
-                      Lon :{" "}
-                      <span className="text-dark bg-light px-2 py-1 fw-bold rounded-2">
-                        {incidentLocation.lng.toFixed(3)}
-                      </span>
-                    </p>
-                  </div>
-                  <div className="form-container">
-                    <Form.Group className="mb-3" controlId="name">
-                      <Form.Text className="text-muted">
-                        Reporter's Name
-                      </Form.Text>
-                      <Form.Control
-                        type="text"
-                        placeholder={name}
-                        value={name}
-                        onChange={(e) => {
-                          setName(e.target.value);
-                        }}
-                      />
-                    </Form.Group>
-                    <Form.Group className="mb-3" controlId="incidence">
-                      <Form.Text className="text-muted">
-                        Ongoing Incidence
-                      </Form.Text>
-                      <Form.Control
-                        type="text"
-                        placeholder="eg: fire Outbreak"
-                        value={incident}
-                        onChange={(e) => {
-                          setIncident(e.target.value);
-                        }}
-                        required
-                      />
-                    </Form.Group>
-                    <div className="form-group text-secondary ">
-                      <label htmlFor="exampleFormControlTextarea1">
-                        Incidence description
-                      </label>
-                      <textarea
-                        required
-                        className="form-control"
-                        id="exampleFormControlTextarea1"
-                        rows="4"
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                        placeholder="detailed description on the incidence you're reporting on"
-                      />
-                    </div>
-                    <Form.Group className="mb-3" controlId="phone">
-                      <Form.Text className="text-muted">
-                        Reporter's contact
-                      </Form.Text>
-                      <Form.Control
-                        type="tel"
-                        placeholder="eg: 0550104094"
-                        value={phone}
-                        onChange={(e) => {
-                          setPhone(e.target.value);
-                        }}
-                        required
-                      />
-                    </Form.Group>
-                  </div>
-
-                  <div className="d-flex gap-3 mx-auto">
-                    <Button variant="primary" type="submit">
-                      Report
-                    </Button>
-                    <Button
-                      variant="primary"
-                      className="text-dark bg-light"
-                      onClick={() => {
-                        setAddmarker(false);
-                        setMarkers(null);
+                  <p>
+                    Lon :{" "}
+                    <span className="text-dark bg-light px-2 py-1 fw-bold rounded-2">
+                      {incidentLocation.lng.toFixed(3)}
+                    </span>
+                  </p>
+                </div>
+                <div className="form-container">
+                  <Form.Group className="mb-3" controlId="name">
+                    <Form.Text className="text-muted">
+                      Reporter's Name
+                    </Form.Text>
+                    <Form.Control
+                      type="text"
+                      placeholder={name}
+                      value={name}
+                      onChange={(e) => {
+                        setName(e.target.value);
                       }}
-                    >
-                      Cancel
-                    </Button>
+                    />
+                  </Form.Group>
+                  <Form.Group className="mb-3" controlId="incidence">
+                    <Form.Text className="text-muted">
+                      Ongoing Incidence
+                    </Form.Text>
+                    <Form.Control
+                      type="text"
+                      placeholder="eg: fire Outbreak"
+                      value={incident}
+                      onChange={(e) => {
+                        setIncident(e.target.value);
+                      }}
+                      required
+                    />
+                  </Form.Group>
+                  <div className="form-group text-secondary">
+                    <label htmlFor="exampleFormControlTextarea1">
+                      Incidence description
+                    </label>
+                    <textarea
+                      required
+                      className="form-control"
+                      id="exampleFormControlTextarea1"
+                      rows="4"
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder="detailed description on the incidence you're reporting on"
+                    />
                   </div>
-                </Form>
-              </>
+                  <Form.Group className="mb-3" controlId="phone">
+                    <Form.Text className="text-muted">
+                      Reporter's contact
+                    </Form.Text>
+                    <Form.Control
+                      type="tel"
+                      placeholder="eg: 0550104094"
+                      value={phone}
+                      onChange={(e) => {
+                        setPhone(e.target.value);
+                      }}
+                      required
+                    />
+                  </Form.Group>
+                </div>
+
+                <div className="d-flex gap-3 mx-auto">
+                  <Button variant="primary" type="submit">
+                    Report
+                  </Button>
+                  <Button
+                    variant="primary"
+                    className="text-dark bg-light"
+                    onClick={() => {
+                      setAddmarker(false);
+                      setMarkers(null);
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </Form>
             ) : (
               ""
             )}
           </div>
-          <MapContainer center={center} zoom={14} className="map-container" >
+          <MapContainer center={center} zoom={14} className="map-container">
             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
             <Marker position={center}>
               <Popup>
-                <h5 className="text-primary">Youre Here</h5>
+                <h5 className="text-primary">You're Here</h5>
               </Popup>
             </Marker>
 
-            {/* Add Marker Component is created here */}
+            {/* Add the Heatmap Layer */}
+            {showHeatmap && <MapWithHeatmap />}
+
+            {/* Add Marker Component */}
             <AddMarker
               setAddmarker={setAddmarker}
               setIncidentLocation={setIncidentLocation}

@@ -49,7 +49,7 @@ function SignUp() {
           onSubmit={SubmitForm}
         >
           <div>
-            <h2 className="text-center py-4">Welcome Back Citizen!</h2>
+            <h2 className="text-center py-4">Welcome Citizen!</h2>
             <h4 className="text-center text-decoration-underline">
               Create Account
             </h4>
