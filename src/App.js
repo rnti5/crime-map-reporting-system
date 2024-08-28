@@ -1,16 +1,18 @@
+import React, { useEffect, useState, useContext } from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
 import "./App.scss";
 import SignUp from "./SignUp";
 import Home from "./Home";
 import { userState } from "./UserStateContext";
-import { useEffect, useState, useContext } from "react";
 import Login from "./Login";
 import "react-toastify/dist/ReactToastify.css";
-import { ToastContainer } from "react-toastify";
+import { ToastContainer, toast } from "react-toastify"; // Import toast for notifications
 import Profile from "./Profile";
 import NavbarComponent from "./NavbarComponent";
 import ReportDashboard from "./ReportDashboard";
 import EmergencyContacts from "./EmergencyContact";
+import { messaging } from "./FirebaseConfig"; // Import Firebase messaging
+import { onMessage } from "firebase/messaging"; // Import onMessage from Firebase
 
 function App() {
   const [userName, setUserName] = useState("");
@@ -32,6 +34,22 @@ function App() {
       setUserName(userContext.userName);
     }
   }, [userContext]);
+
+  // Effect to handle incoming FCM messages in the foreground
+  useEffect(() => {
+    const unsubscribe = onMessage(messaging, (payload) => {
+      console.log("Message received in foreground: ", payload);
+      toast.info(`Notification: ${payload.notification.title}`, {
+        position: toast.POSITION.TOP_RIGHT,
+        autoClose: 5000,
+      });
+    });
+
+    // Cleanup on unmount
+    return () => {
+      unsubscribe();
+    };
+  }, []);
 
   return (
     <userState.Provider value={{ userName, setUserName, center, setCenter }}>
