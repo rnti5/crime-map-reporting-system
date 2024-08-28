@@ -9,7 +9,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer } from "react-toastify";
 import Profile from "./Profile";
 import NavbarComponent from "./NavbarComponent";
-import AdminReportDashboard from "./AdminReportDashboard";
+import ReportDashboard from "./ReportDashboard";
 import EmergencyContacts from "./EmergencyContact";
 
 function App() {
@@ -41,7 +41,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/home" element={<Home />} />
         <Route path="/profile" element={<Profile />} />
-        <Route path="/admin/reports" element={<AdminReportDashboard />} />
+        <Route path="/admin/reports" element={<ReportDashboard />} />
         <Route
           path="/emergency-contacts"
           element={<EmergencyContacts />} // Add the emergency contacts route

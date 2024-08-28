@@ -10,46 +10,54 @@ const HeatmapLayer = ({ map, showHeatmap, showTooltip }) => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const heatmapPoints = [];
-      const markers = [];
-      const querySnapshot = await getDocs(collection(db, "Reported Cases"));
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        if (data.incidentLocation) {
-          const point = [
-            data.incidentLocation.latitude,
-            data.incidentLocation.longitude,
-            1, // intensity of the point
-          ];
-          heatmapPoints.push(point);
+      try {
+        const heatmapPoints = [];
+        const markers = [];
+        const querySnapshot = await getDocs(collection(db, "Reported Cases"));
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          if (data.incidentLocation) {
+            const point = [
+              data.incidentLocation.latitude,
+              data.incidentLocation.longitude,
+              1, // intensity of the point
+            ];
+            heatmapPoints.push(point);
 
-          if (showTooltip) {
-            markers.push(
-              L.marker([
-                data.incidentLocation.latitude,
-                data.incidentLocation.longitude,
-              ]).bindTooltip(`Incident: ${data.incident}`, {
-                permanent: false,
-                direction: "top",
-              })
-            );
+            if (showTooltip) {
+              markers.push(
+                L.marker([
+                  data.incidentLocation.latitude,
+                  data.incidentLocation.longitude,
+                ]).bindTooltip(`Incident: ${data.incident}`, {
+                  permanent: false,
+                  direction: "top",
+                })
+              );
+            }
           }
+        });
+
+        // Update or create heatmap layer
+        if (heatLayerRef.current) {
+          heatLayerRef.current.setLatLngs(heatmapPoints);
+        } else {
+          heatLayerRef.current = L.heatLayer(heatmapPoints, {
+            radius: 10,
+            blur: 5,
+            maxZoom: 12,
+          }).addTo(map);
         }
-      });
 
-      if (heatLayerRef.current) {
-        heatLayerRef.current.setLatLngs(heatmapPoints); // Update existing heatmap points
-      } else {
-        heatLayerRef.current = L.heatLayer(heatmapPoints, {
-          radius: 10, // adjust the radius of influence for each point
-          blur: 5, // adjust the blur for smoother heatmap appearance
-          maxZoom: 12,
-        }).addTo(map); // Add the heatmap layer to the map
-      }
-
-      // Add markers with tooltips if needed
-      if (showTooltip && map) {
-        markersLayerRef.current = L.layerGroup(markers).addTo(map);
+        // Update or create markers layer
+        if (markersLayerRef.current) {
+          markersLayerRef.current.clearLayers();
+          markersLayerRef.current.addLayers(markers);
+        } else if (showTooltip && map) {
+          markersLayerRef.current = L.layerGroup(markers).addTo(map);
+        }
+      } catch (error) {
+        console.error("Error fetching data for heatmap:", error);
       }
     };
 
@@ -57,10 +65,9 @@ const HeatmapLayer = ({ map, showHeatmap, showTooltip }) => {
       fetchData();
     } else if (map && heatLayerRef.current) {
       map.removeLayer(heatLayerRef.current);
-      heatLayerRef.current = null; // Reset the reference
+      heatLayerRef.current = null;
     }
 
-    // Cleanup on unmount
     return () => {
       if (map && heatLayerRef.current) {
         map.removeLayer(heatLayerRef.current);
@@ -72,7 +79,7 @@ const HeatmapLayer = ({ map, showHeatmap, showTooltip }) => {
     };
   }, [map, showHeatmap, showTooltip]);
 
-  return null; // This component doesn't render anything directly
+  return null;
 };
 
 export default HeatmapLayer;

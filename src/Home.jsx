@@ -20,6 +20,7 @@ const Home = () => {
   const [incident, setIncident] = useState("");
   const [incidentLocation, setIncidentLocation] = useState();
   const [phone, setPhone] = useState("");
+  const [isAnonymous, setIsAnonymous] = useState(false); // New state for anonymous reporting
 
   const [cityName, setCityName] = useState("searching...");
   const [state, setSate] = useState("searching...");
@@ -48,7 +49,11 @@ const Home = () => {
 
   const getUser = () => {
     onAuthStateChanged(authentication, (currentUser) => {
-      setName(currentUser.displayName);
+      if (currentUser) {
+        setName(currentUser.displayName || "Anonymous");
+      } else {
+        setName("Guest");
+      }
     });
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition((position) => {
@@ -63,42 +68,57 @@ const Home = () => {
     getUser();
   }, []);
 
+  const handleAnonymousChange = (e) => {
+    setIsAnonymous(e.target.checked);
+    if (e.target.checked) {
+      setName("Anonymous");
+      setPhone("Anonymous");
+    } else {
+      setName(""); // Optionally reset to empty, or keep the user's original name
+      setPhone(""); // Optionally reset to empty
+    }
+  };
+
   const sentData = async (e) => {
     e.preventDefault();
-    await toast.promise(
-      addDoc(collection(db, "Reported Cases"), {
-        date: date,
-        time: time,
-        reporter: name,
-        reporters_location: center,
-        incident: incident,
-        incidentDescription: description,
-        location: cityName,
-        state: state,
-        incidentLocation: {
-          latitude: incidentLocation.lat.toFixed(2),
-          longitude: incidentLocation.lng.toFixed(2),
-        },
-        phone: phone,
-      }),
-      {
-        pending: "Submitting Report",
-        success: "Report successfully submitted",
-        error: "An issue occurred, Try again!",
-      }
+    try {
+      await toast.promise(
+        addDoc(collection(db, "Reported Cases"), {
+          date: date,
+          time: time,
+          reporter: isAnonymous ? "Anonymous" : name, // Use "Anonymous" if the report is anonymous
+          reporters_location: isAnonymous ? null : center, // Optionally hide the user's location
+          incident: incident,
+          incidentDescription: description,
+          location: cityName,
+          state: state,
+          incidentLocation: {
+            latitude: incidentLocation.lat.toFixed(2),
+            longitude: incidentLocation.lng.toFixed(2),
+          },
+          phone: isAnonymous ? "Anonymous" : phone, // Handle phone number accordingly
+        }),
+        {
+          pending: "Submitting Report",
+          success: "Report successfully submitted",
+          error: "An issue occurred, Try again!",
+        }
+      );
+    } catch (error) {
+      console.error("Error submitting report:", error);
+      toast.error("An error occurred while submitting the report.");
+    }
+  };
+
+  const MapWithHeatmap = () => {
+    const map = useMap();
+    return (
+      <HeatmapLayer map={map} showHeatmap={showHeatmap} showTooltip={true} />
     );
   };
 
-  // Component to handle the heatmap layer with the correct useMap hook
-  const MapWithHeatmap = () => {
-    const map = useMap(); // useMap hook is called unconditionally here
-    return (
-      <HeatmapLayer map={map} showHeatmap={showHeatmap} showTooltip={true} />
-    ); // Passing props correctly
-  };
-
   const toggleHeatmap = () => {
-    setShowHeatmap(!showHeatmap); // Correctly toggling heatmap visibility
+    setShowHeatmap(!showHeatmap);
   };
 
   return (
@@ -112,7 +132,7 @@ const Home = () => {
               {showHeatmap ? "Hide Heatmap" : "Show Heatmap"}
             </Button>
 
-            {addmarker ? (
+            {addmarker && (
               <Form className="h-100 bg-dark p-3 rounded-4" onSubmit={sentData}>
                 <p className="text-light fw-bolder text-center gy-0 my-0 py-0">
                   {cityName.toUpperCase()}
@@ -121,46 +141,57 @@ const Home = () => {
 
                 <div className="d-flex gap-2 text-light">
                   <p>
-                    Lat :{" "}
+                    Lat:{" "}
                     <span className="text-dark bg-light px-2 py-1 fw-bold rounded-2">
-                      {incidentLocation.lat.toFixed(3)}
+                      {incidentLocation?.lat?.toFixed(3)}
                     </span>
                   </p>
                   <p>
-                    Lon :{" "}
+                    Lon:{" "}
                     <span className="text-dark bg-light px-2 py-1 fw-bold rounded-2">
-                      {incidentLocation.lng.toFixed(3)}
+                      {incidentLocation?.lng?.toFixed(3)}
                     </span>
                   </p>
                 </div>
                 <div className="form-container">
+                  <Form.Group controlId="formAnonymous">
+                    <Form.Check
+                      type="checkbox"
+                      label="Report Anonymously"
+                      checked={isAnonymous}
+                      onChange={handleAnonymousChange}
+                      style={{ color: "white" }}
+                    />
+                  </Form.Group>
+
                   <Form.Group className="mb-3" controlId="name">
                     <Form.Text className="text-muted">
                       Reporter's Name
                     </Form.Text>
                     <Form.Control
                       type="text"
-                      placeholder={name}
+                      placeholder={
+                        isAnonymous ? "Anonymous" : "Enter your name"
+                      }
                       value={name}
-                      onChange={(e) => {
-                        setName(e.target.value);
-                      }}
+                      onChange={(e) => setName(e.target.value)}
+                      disabled={isAnonymous} // Disable if reporting anonymously
                     />
                   </Form.Group>
+
                   <Form.Group className="mb-3" controlId="incidence">
                     <Form.Text className="text-muted">
                       Ongoing Incidence
                     </Form.Text>
                     <Form.Control
                       type="text"
-                      placeholder="eg: fire Outbreak"
+                      placeholder="e.g., fire Outbreak"
                       value={incident}
-                      onChange={(e) => {
-                        setIncident(e.target.value);
-                      }}
+                      onChange={(e) => setIncident(e.target.value)}
                       required
                     />
                   </Form.Group>
+
                   <div className="form-group text-secondary">
                     <label htmlFor="exampleFormControlTextarea1">
                       Incidence description
@@ -172,20 +203,22 @@ const Home = () => {
                       rows="4"
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
-                      placeholder="detailed description on the incidence you're reporting on"
+                      placeholder="Detailed description of the incident you're reporting"
                     />
                   </div>
+
                   <Form.Group className="mb-3" controlId="phone">
                     <Form.Text className="text-muted">
                       Reporter's contact
                     </Form.Text>
                     <Form.Control
                       type="tel"
-                      placeholder="eg: 0550104094"
+                      placeholder={
+                        isAnonymous ? "Anonymous" : "e.g., 0550104094"
+                      }
                       value={phone}
-                      onChange={(e) => {
-                        setPhone(e.target.value);
-                      }}
+                      onChange={(e) => setPhone(e.target.value)}
+                      disabled={isAnonymous} // Disable if reporting anonymously
                       required
                     />
                   </Form.Group>
@@ -207,8 +240,6 @@ const Home = () => {
                   </Button>
                 </div>
               </Form>
-            ) : (
-              ""
             )}
           </div>
           <MapContainer center={center} zoom={14} className="map-container">
@@ -220,10 +251,8 @@ const Home = () => {
               </Popup>
             </Marker>
 
-            {/* Add the Heatmap Layer */}
             {showHeatmap && <MapWithHeatmap />}
 
-            {/* Add Marker Component */}
             <AddMarker
               setAddmarker={setAddmarker}
               setIncidentLocation={setIncidentLocation}
