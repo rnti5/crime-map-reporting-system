@@ -4,13 +4,13 @@ import { getFirestore, doc, setDoc } from "firebase/firestore"; // Add doc and s
 import { getMessaging, getToken, onMessage } from "firebase/messaging"; // Import FCM functions
 
 const firebaseConfig = {
-  apiKey: "AIzaSyA-wQRiq6DAnukrgyisr7UlBWjPSbjJCOo",
-  authDomain: "crime-report-5c09f.firebaseapp.com",
-  projectId: "crime-report-5c09f",
-  storageBucket: "crime-report-5c09f.appspot.com",
-  messagingSenderId: "482196548122",
-  appId: "1:482196548122:web:ca8e8031d8f1a1795a7fa3",
-  measurementId: "G-LJFH54SRHK",
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.REACT_APP_FIREBASE_APP_ID,
+  measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID,
 };
 
 const app = initializeApp(firebaseConfig);

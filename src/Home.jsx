@@ -180,7 +180,7 @@ const Home = () => {
                   </Form.Group>
 
                   <Form.Group className="mb-3" controlId="incidence">
-                    <Form.Text className="text-muted">
+                    <Form.Text className=" text-secondary">
                       Ongoing Incidence
                     </Form.Text>
                     <Form.Control
@@ -207,8 +207,8 @@ const Home = () => {
                     />
                   </div>
 
-                  <Form.Group className="mb-3" controlId="phone">
-                    <Form.Text className="text-muted">
+                  <Form.Group className="mb-3 " controlId="phone">
+                    <Form.Text className="text-secondary">
                       Reporter's contact
                     </Form.Text>
                     <Form.Control
