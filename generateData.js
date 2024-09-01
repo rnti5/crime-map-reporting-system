@@ -4,13 +4,13 @@ const { faker } = require("@faker-js/faker"); // Importing @faker-js/faker
 
 // Initialize Firebase (use your Firebase project config here)
 const firebaseConfig = {
-  apiKey: "AIzaSyA-wQRiq6DAnukrgyisr7UlBWjPSbjJCOo",
-  authDomain: "crime-report-5c09f.firebaseapp.com",
-  projectId: "crime-report-5c09f",
-  storageBucket: "crime-report-5c09f.appspot.com",
-  messagingSenderId: "482196548122",
-  appId: "1:482196548122:web:ca8e8031d8f1a1795a7fa3",
-  measurementId: "G-LJFH54SRHK",
+  apiKey: "AIzaSyBa49Xm7oNFRc9YNeMoDRWor83dGRxZafI",
+  authDomain: "crime-map-reporting.firebaseapp.com",
+  projectId: "crime-map-reporting",
+  storageBucket: "crime-map-reporting.appspot.com",
+  messagingSenderId: "253168596594",
+  appId: "1:253168596594:web:045ef817473b53f0c774eb",
+  measurementId: "G-YBMYJD4MH2",
 };
 
 const app = initializeApp(firebaseConfig);

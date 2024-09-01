@@ -23,7 +23,7 @@ export const messaging = getMessaging(app);
 export const requestFCMToken = async (userId) => {
   try {
     const currentToken = await getToken(messaging, {
-      vapidKey: "BO2ei9ZD3EpVaEhnZGIpyDgXpqQOoOPgjCl15adEj7hQwz",
+      vapidKey: "BEJL96iyPT2mY0K8En4GgtmVzdYswhOoUYsoGAMDn6n",
     });
     if (currentToken) {
       console.log("FCM Token:", currentToken);

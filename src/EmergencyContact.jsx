@@ -12,7 +12,7 @@ const EmergencyContacts = () => {
     const fetchContacts = async () => {
       try {
         const contactsCollection = await getDocs(
-          collection(db, "EmergencyContacts")
+          collection(db, "EmergencyContact")
         );
         const contactsData = contactsCollection.docs.map((doc) => doc.data());
         setContacts(contactsData);
