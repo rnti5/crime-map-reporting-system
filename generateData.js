@@ -160,7 +160,7 @@ function getRandomOffset() {
 }
 
 async function generateData() {
-  for (let i = 0; i < 30; i++) {
+  for (let i = 0; i < 350; i++) {
     const incidentType = faker.helpers.arrayElement(
       Object.keys(incidentDescriptions)
     );
